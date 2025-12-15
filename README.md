@@ -1,5 +1,9 @@
+
 ````markdown
 # Student Smartphone Distraction Prediction System (MLOps)
+=======
+# Student Smartphone Distraction Prediction System (MLOps)-Kelompok-8-MLOPs-RC
+>>>>>>> 19b6286d9604c80fd1eedf632ef1565d0dbfcd83
 
 ![Python](https://img.shields.io/badge/Python-3.9-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.95-green)
@@ -15,7 +19,12 @@ Input prediksi menggunakan skala 1-8 pada 7 indikator perilaku (Frekuensi, Duras
 
 ## 🏗️ Arsitektur Sistem & Struktur Folder
 
+
 ```text
+=======
+````markdown
+gadget-distraction-classifier/
+>>>>>>> 19b6286d9604c80fd1eedf632ef1565d0dbfcd83
 ├── .dockerignore          # Konfigurasi ignore Docker
 ├── Dockerfile             # Resep image Docker
 ├── requirements.txt       # Daftar dependensi Python
@@ -161,4 +170,3 @@ Model terbaik dipilih berdasarkan akurasi tertinggi pada data test (20% split).
 
 ```
 
-***
