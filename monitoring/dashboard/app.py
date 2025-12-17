@@ -44,8 +44,8 @@ def calculate_psi(expected, actual, buckets=10):
 # =====================================
 st.title("📊 Dashboard Monitoring Model — Data Drift & Predictions")
 
-baseline_path = r"C:\Users\Andre Parhusip\Downloads\MLOps\data\dataset MLOps.csv"
-production_path = r"C:\Users\Andre Parhusip\Downloads\MLOps\monitoring\logs\prediction_logs.csv"
+baseline_path = "data/dataset MLOps.csv"
+production_path = "monitoring/logs/prediction_logs.csv"
 
 # ---- LOAD BASELINE ----
 try:
