@@ -3,13 +3,14 @@ import streamlit as st
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import requests
 
 st.set_page_config(page_title="Monitoring Model", layout="wide")
 
-st.write("DEBUG: APP.PY SEDANG DIJALANKAN")
-st.write("Working directory:", os.getcwd())
-st.write("Baseline exists:", os.path.exists("data/dataset MLOps.csv"))
-
+# =============================
+# FastAPI URL
+# =============================
+API_URL = "http://localhost:8000/predict"  # ganti jika deploy API ke cloud
 
 
 # =====================================
@@ -40,7 +41,46 @@ def calculate_psi(expected, actual, buckets=10):
 
 
 # =====================================
-#   LOAD BASELINE DATA
+#   SIDEBAR - FORM INPUT DATA
+# =====================================
+st.sidebar.header("📝 Input Data Baru untuk Prediksi")
+
+with st.sidebar.form("input_form"):
+    Mahasiswa_Angkatan = st.number_input("Angkatan", min_value=2015, max_value=2025, value=2022)
+    frekuensi = st.slider("Frekuensi penggunaan gadget", 1, 5, 3)
+    durasi = st.slider("Durasi penggunaan gadget", 1, 5, 3)
+    tujuan = st.slider("Tujuan penggunaan gadget", 1, 5, 3)
+    sulit_kontrol = st.slider("Sulit kontrol penggunaan gadget", 1, 5, 3)
+    persepsi = st.slider("Persepsi pengaruh gadget", 1, 5, 3)
+    kemampuan_waktu = st.slider("Kemampuan atur waktu", 1, 5, 3)
+    upaya = st.slider("Upaya mengurangi penggunaan gadget", 1, 5, 3)
+
+    submit_btn = st.form_submit_button("Kirim ke API untuk Prediksi 🚀")
+
+if submit_btn:
+    input_payload = {
+        "Mahasiswa_Angkatan": Mahasiswa_Angkatan,
+        "frekuensi": frekuensi,
+        "durasi": durasi,
+        "tujuan": tujuan,
+        "sulit_kontrol": sulit_kontrol,
+        "persepsi": persepsi,
+        "kemampuan_waktu": kemampuan_waktu,
+        "upaya": upaya
+    }
+
+    try:
+        response = requests.post(API_URL, json=input_payload)
+        pred_result = response.json()
+
+        st.sidebar.success(f"Prediksi Model: **{pred_result['prediction']}** 🎉")
+
+    except Exception as e:
+        st.sidebar.error(f"Gagal menghubungi API: {e}")
+
+
+# =====================================
+#   DASHBOARD MONITORING
 # =====================================
 st.title("📊 Dashboard Monitoring Model — Data Drift & Predictions")
 
@@ -71,6 +111,7 @@ features = [
 
 baseline = baseline_raw[features]
 
+
 # =====================================
 #   LOAD PRODUCTION LOGS
 # =====================================
@@ -81,7 +122,7 @@ if os.path.exists(production_path):
         st.error(f"❌ Gagal membaca production log: {e}")
         st.stop()
 
-    # ---- Mapping kolom production → baseline ----
+    # Mapping ke baseline
     column_map = {
         "Mahasiswa_Angkatan": "Mahasiswa Angkatan",
         "frekuensi": "Seberapa sering (frekuensi) penggunaan gadget Kamu setiap hari?",
@@ -94,75 +135,61 @@ if os.path.exists(production_path):
     }
 
     production_raw.rename(columns=column_map, inplace=True)
-
-    # Ambil hanya fitur relevan (jika ada)
-    try:
-        production = production_raw[features]
-    except KeyError:
-        st.error("❌ Kolom pada production log tidak sesuai dengan baseline dataset.")
-        st.write("Kolom production:", production_raw.columns.tolist())
-        st.write("Kolom diperlukan:", features)
-        st.stop()
+    production = production_raw[features]
 
 else:
-    st.warning("⚠ Belum ada data produksi (prediction_logs.csv). Jalankan API & lakukan prediksi.")
+    st.warning("⚠ Belum ada data produksi. Lakukan prediksi melalui sidebar.")
     production = None
 
 
 # =====================================
-#   TAMPILKAN DATA PRODUKSI
+#   TAMPILKAN TABEL PRODUKSI
 # =====================================
 st.subheader("📌 Data Produksi Terbaru")
+
 if production is not None:
     st.dataframe(production.tail(10))
-else:
-    st.info("Tidak ada data prediksi untuk ditampilkan.")
-
 
 # =====================================
-#   HITUNG PSI (DATA DRIFT)
+#   PSI DRIFT MONITORING
 # =====================================
 st.subheader("📈 Data Drift Monitoring (PSI)")
 
-psi_results = {}
-
 if production is not None:
+    psi_results = {}
     for col in features:
         psi_results[col] = calculate_psi(baseline[col], production[col])
 
     df_psi = pd.DataFrame(psi_results.items(), columns=["Feature", "PSI"])
     st.write(df_psi)
 
-    # Interpretasi otomatis
-    st.subheader("📌 Interpretasi PSI per Fitur")
+    st.subheader("📌 Interpretasi PSI")
 
-    for feature, psi_val in psi_results.items():
+    for f, psi_val in psi_results.items():
         if psi_val < 0.1:
             status = "🟢 Stabil"
         elif psi_val < 0.25:
             status = "🟡 Warning"
         else:
-            status = "🔴 Drift Terdeteksi"
+            status = "🔴 Drift"
 
-        st.write(f"**{feature}** → PSI = `{psi_val:.4f}` → {status}")
-
+        st.write(f"**{f}** → PSI = `{psi_val:.4f}` → {status}")
 else:
-    st.info("Menunggu data produksi untuk menghitung PSI.")
+    st.info("PSI akan muncul setelah ada data prediksi.")
 
 
 # =====================================
-#   VISUALISASI DISTRIBUSI FITUR
+#   VISUALISASI DISTRIBUSI
 # =====================================
-st.subheader("📊 Distribusi Fitur (Baseline vs Production)")
+st.subheader("📊 Distribusi Fitur")
 
-selected_feature = st.selectbox("Pilih fitur untuk visualisasi:", features)
+selected_feature = st.selectbox("Pilih fitur:", features)
 
-fig, ax = plt.subplots(figsize=(8, 4))
+fig, ax = plt.subplots(figsize=(7, 4))
 ax.hist(baseline[selected_feature], alpha=0.5, label="Baseline")
 
 if production is not None:
     ax.hist(production[selected_feature], alpha=0.5, label="Production")
 
 ax.legend()
-ax.set_title(f"Distribusi {selected_feature}")
 st.pyplot(fig)
