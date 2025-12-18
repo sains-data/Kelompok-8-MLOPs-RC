@@ -47,13 +47,13 @@ st.sidebar.header("📝 Input Data Baru untuk Prediksi")
 
 with st.sidebar.form("input_form"):
     Mahasiswa_Angkatan = st.number_input("Angkatan", min_value=2015, max_value=2025, value=2022)
-    frekuensi = st.slider("Frekuensi penggunaan gadget", 1, 5, 3)
-    durasi = st.slider("Durasi penggunaan gadget", 1, 5, 3)
-    tujuan = st.slider("Tujuan penggunaan gadget", 1, 5, 3)
-    sulit_kontrol = st.slider("Sulit kontrol penggunaan gadget", 1, 5, 3)
-    persepsi = st.slider("Persepsi pengaruh gadget", 1, 5, 3)
-    kemampuan_waktu = st.slider("Kemampuan atur waktu", 1, 5, 3)
-    upaya = st.slider("Upaya mengurangi penggunaan gadget", 1, 5, 3)
+    frekuensi = st.slider("Frekuensi penggunaan gadget", 1, 8, 3)
+    durasi = st.slider("Durasi penggunaan gadget", 1, 8, 3)
+    tujuan = st.slider("Tujuan penggunaan gadget", 1, 8, 3)
+    sulit_kontrol = st.slider("Sulit kontrol penggunaan gadget", 1, 8, 3)
+    persepsi = st.slider("Persepsi pengaruh gadget", 1, 8, 3)
+    kemampuan_waktu = st.slider("Kemampuan atur waktu", 1, 8, 3)
+    upaya = st.slider("Upaya mengurangi penggunaan gadget", 1, 8, 3)
 
     submit_btn = st.form_submit_button("Kirim ke API untuk Prediksi 🚀")
 
